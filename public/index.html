@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Resizer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Image Resizer</h1>
+    <p class="description">
+      This Image Resizer app allows users to easily upload multiple images from their local files and resize them to fit within a uniform set of dimensions. By selecting an entire folder of images, the app processes each image, scaling it proportionally and padding it with a transparent background if necessary to ensure consistency. Users can specify the output folder name, and after the resizing process, the app packages all the processed images into a downloadable ZIP file. This tool is particularly useful for quickly standardizing images for presentations, web use, or any situation where uniform image dimensions are required.
+    </p>
+    <form id="upload-form" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="input-folder">Select Input Folder:</label>
+        <input type="file" id="input-folder" webkitdirectory directory multiple>
+      </div>
+      <div class="form-group">
+        <label for="output-folder">Output Folder Name:</label>
+        <input type="text" id="output-folder" name="output-folder" required placeholder="Enter output folder name">
+      </div>
+      <button type="submit">Upload and Process</button>
+    </form>
+
+    <div id="loading" class="loading" style="display: none;">Processing...</div>
+
+    <div id="download-link" style="display: none;">
+      <a id="download-zip" href="#" download>Download Processed Images</a>
+    </div>
+  </div>
+
+  <footer>
+    <p class="footer__copyright">&copy; <span id="current-year"></span> Solaiman Karroumi. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Set the current year in the footer
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+
+    document.getElementById('upload-form').onsubmit = async function(e) {
+      e.preventDefault();
+
+      document.getElementById('loading').style.display = 'block';
+
+      const inputFolder = document.getElementById('input-folder').files;
+      const outputFolder = document.getElementById('output-folder').value;
+
+      const formData = new FormData();
+      for (let i = 0; i < inputFolder.length; i++) {
+        formData.append('images', inputFolder[i]);
+      }
+      formData.append('outputFolder', outputFolder);
+
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      document.getElementById('loading').style.display = 'none';
+
+      if (response.ok) {
+        const data = await response.json();
+        const downloadLink = document.getElementById('download-link');
+        downloadLink.style.display = 'block';
+        document.getElementById('download-zip').href = data.zipUrl;
+      } else {
+        alert('Error processing images');
+      }
+    }
+  </script>
+</body>
+</html>
